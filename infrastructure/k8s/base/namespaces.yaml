@@ -1,0 +1,39 @@
+# infrastructure/k8s/base/namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: citation-finder
+
+---
+# infrastructure/k8s/base/storage-class.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: do-block-storage
+provisioner: dobs.csi.digitalocean.com
+
+---
+# infrastructure/k8s/base/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: database-credentials
+  namespace: citation-finder
+type: Opaque
+data:
+  # We'll update these values with actual credentials
+  DB_HOST: ""
+  DB_USER: ""
+  DB_PASSWORD: ""
+  DB_NAME: ""
+  
+---
+# infrastructure/k8s/base/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: citation-finder
+data:
+  ENVIRONMENT: "development"
+  REGION: "sfo3"
