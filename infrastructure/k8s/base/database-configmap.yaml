@@ -1,0 +1,9 @@
+# infrastructure/k8s/base/database-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+  namespace: citation-finder
+data:
+  DB_SSL_MODE: "require"
+  POSTGRES_DB: "defaultdb"

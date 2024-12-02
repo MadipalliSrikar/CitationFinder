@@ -1,0 +1,26 @@
+# infrastructure/k8s/base/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: citation-finder-ingress
+  namespace: citation-finder
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/v1/ingest
+        pathType: Prefix
+        backend:
+          service:
+            name: data-ingestion
+            port:
+              number: 80
+      - path: /api/v1/search
+        pathType: Prefix
+        backend:
+          service:
+            name: rag-service
+            port:
+              number: 80
