@@ -47,3 +47,8 @@ spec:
             secretKeyRef:
               name: db-credentials
               key: DB_PASSWORD
+        - name: PUBMED_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-credentials
+              key: PUBMED_API_KEY
