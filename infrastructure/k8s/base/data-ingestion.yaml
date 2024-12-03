@@ -1,4 +1,18 @@
-# infrastructure/k8s/base/data-ingestion.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-ingestion
+  namespace: citation-finder
+spec:
+  selector:
+    app: data-ingestion
+  ports:
+    - protocol: TCP
+      port: 8000        # Changed to match the container port
+      targetPort: 8000  # Port the container is listening on
+  type: ClusterIP
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,8 +28,8 @@ spec:
       labels:
         app: data-ingestion
     spec:
-      imagePullSecrets:  # Add this section
-      - name: citation-finder  # Use the existing secret name we saw
+      imagePullSecrets:
+      - name: citation-finder
       containers:
       - name: data-ingestion
         image: registry.digitalocean.com/citation-finder/data-ingestion:latest
@@ -47,6 +61,11 @@ spec:
             secretKeyRef:
               name: db-credentials
               key: DB_PASSWORD
+        - name: DB_SSL_MODE
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_SSL_MODE
         - name: PUBMED_API_KEY
           valueFrom:
             secretKeyRef:
