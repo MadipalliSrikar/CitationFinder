@@ -10,8 +10,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install requirements
-COPY requirements.txt .
+# Copy and install shared package first
+COPY shared/ ./shared/
+RUN pip install -e ./shared/
+
+# Copy and create wheels
+COPY services/data-ingestion/requirements.txt .
 RUN pip wheel --no-cache-dir --wheel-dir=/app/wheels -r requirements.txt \
     && pip wheel --no-cache-dir --wheel-dir=/app/wheels typing-extensions>=4.0
 
@@ -26,9 +30,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -r -s /bin/false appuser
 
+# Copy shared package
+COPY shared/ ./shared/
+RUN pip install -e ./shared/
+
 # Copy wheels and install packages
 COPY --from=builder /app/wheels /app/wheels
-COPY requirements.txt .
+COPY services/data-ingestion/requirements.txt .
 
 # Install packages
 RUN pip install --no-cache-dir --no-index --find-links=/app/wheels -r requirements.txt \
@@ -38,10 +46,10 @@ RUN pip install --no-cache-dir --no-index --find-links=/app/wheels -r requiremen
     && find /usr/local/lib/python3.9/site-packages/ \( -name "*.pyc" -o -name "__pycache__" \) -delete
 
 # Copy application code
-COPY main.py .
-COPY src/ ./src/
-COPY alembic.ini .
-COPY alembic/ ./alembic/
+COPY services/data-ingestion/main.py .
+COPY services/data-ingestion/src/ ./src/
+COPY services/data-ingestion/alembic.ini .
+COPY services/data-ingestion/alembic/ ./alembic/
 
 # Set permissions
 RUN chown -R appuser:appuser /app

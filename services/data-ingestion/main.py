@@ -4,12 +4,11 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Dict, Optional
 from pydantic import BaseModel
-import time
 
+from shared.models import Paper, Author
 from src.core.database import get_db
-from src.models import Paper, Author, Citation
 from src.core.pubmed_service import PubMedService
 
 # Configure logging
@@ -24,7 +23,7 @@ class AuthorResponse(BaseModel):
     name: str
 
     class Config:
-        from_attributes = True  # This replaces orm_mode=True
+        from_attributes = True
 
 class PaperResponse(BaseModel):
     pmid: str
@@ -35,7 +34,7 @@ class PaperResponse(BaseModel):
     authors: List[AuthorResponse]
 
     class Config:
-        from_attributes = True  # This replaces orm_mode=True
+        from_attributes = True
 
 class IngestRequest(BaseModel):
     query: str
