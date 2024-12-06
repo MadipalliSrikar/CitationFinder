@@ -1,3 +1,5 @@
+import time  # Must be at the very top
+import asyncio
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -133,16 +135,11 @@ async def ingest_data(request: IngestRequest, db: AsyncSession = Depends(get_db)
         stored_papers = []
         for pmid in pmids:
             try:
-                # Rate limiting
-                time.sleep(0.34)  # ~3 requests per second
-                
-                # Fetch detailed paper data
+                # Fetch detailed paper data - no sleep needed as PubMedService handles rate limiting
                 paper_details = await pubmed_service.fetch_paper_details(pmid)
                 
                 if paper_details:
-                    # Store in database
                     paper = await store_paper(db, paper_details)
-                    # Convert to PaperResponse before adding to list
                     paper_response = PaperResponse.from_orm(paper)
                     stored_papers.append(paper_response)
                     

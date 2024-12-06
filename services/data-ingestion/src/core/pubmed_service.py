@@ -22,8 +22,8 @@ class PubMedService:
         await self.client.aclose()
 
     async def search_papers(self, query: str, max_results: int = 10) -> List[str]:
-        """Search PubMed and return PMIDs"""
         try:
+            logger.info(f"Searching PubMed for: {query}")
             search_url = f"{self.base_url}esearch.fcgi"
             params = {
                 'db': 'pmc',
@@ -33,19 +33,39 @@ class PubMedService:
                 'api_key': self.api_key
             }
             
-            response = await self.client.get(search_url, params=params)
-            response.raise_for_status()
-            
-            root = ET.fromstring(response.content)
-            id_list = root.findall(".//Id")
-            return [id_elem.text for id_elem in id_list]
-        
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error during PubMed search: {str(e)}")
-            raise
+            async with httpx.AsyncClient() as client:
+                try:
+                    response = await client.get(search_url, params=params)
+                except httpx.RequestError as e:
+                    logger.error(f"An error occurred while requesting PubMed: {e}")
+                    return []
+                
+                if response.status_code != 200:
+                    logger.error(f"PubMed API returned an error: {response.status_code}")
+                    return []
+                
+                if "xml" not in response.headers.get("Content-Type", ""):
+                    logger.error("Response is not XML.")
+                    return []
+                
+                try:
+                    root = ET.fromstring(response.content)
+                except ET.ParseError as e:
+                    logger.error(f"Failed to parse PubMed XML response: {e}")
+                    return []
+
+                id_list = root.findall(".//Id")
+                pmids = [id_elem.text for id_elem in id_list]
+                
+                if not pmids:
+                    logger.info("No papers found for the query.")
+                else:
+                    logger.info(f"Found {len(pmids)} papers: {pmids}")
+                
+                return pmids
         except Exception as e:
-            logger.error(f"Error during PubMed search: {str(e)}")
-            raise
+            logger.error(f"An unexpected error occurred: {e}")
+            return []
 
     async def fetch_paper_details(self, pmid: str) -> Dict:
         """Fetch detailed paper information"""

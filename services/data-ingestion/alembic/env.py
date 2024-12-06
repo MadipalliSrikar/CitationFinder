@@ -1,27 +1,18 @@
+import os
+import sys
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
-import os
-import sys
-from dotenv import load_dotenv
 
-# Add the src directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+# add parent directory to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from models import Base
-from core.database import DATABASE_URL
+from shared.models import Base
 
-# Convert async URL to sync URL for Alembic
-SQLALCHEMY_DATABASE_URL = DATABASE_URL.replace('postgresql+asyncpg', 'postgresql')
-
-# this is the Alembic Config object
 config = context.config
 
-# Set SQLAlchemy URL
-config.set_main_option('sqlalchemy.url', SQLALCHEMY_DATABASE_URL)
-
-# Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
@@ -42,9 +33,8 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section)
     
-    # Ensure SSL mode is set
-    if "?sslmode=require" not in configuration["sqlalchemy.url"]:
-        configuration["sqlalchemy.url"] += "?sslmode=require"
+    # Add SSL mode to the configuration
+    configuration["sqlalchemy.url"] = configuration["sqlalchemy.url"] + "?sslmode=require"
     
     connectable = engine_from_config(
         configuration,
