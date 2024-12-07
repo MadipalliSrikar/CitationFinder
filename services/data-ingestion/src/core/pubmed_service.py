@@ -1,3 +1,5 @@
+import time
+import asyncio
 import httpx
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -5,6 +7,7 @@ from typing import List, Dict, Optional
 import logging
 import os
 from dotenv import load_dotenv
+
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -14,15 +17,25 @@ class PubMedService:
         self.base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
         self.api_key = os.getenv('PUBMED_API_KEY', '')
         self.client = httpx.AsyncClient(timeout=30.0)
+        self._last_request_time = 0
+        self.rate_limit_delay = 0.34
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.client.aclose()
+        
+    async def _rate_limit(self):
+        current_time = time.time()
+        elapsed = current_time - self._last_request_time
+        if elapsed < self.rate_limit_delay:
+            await asyncio.sleep(self.rate_limit_delay - elapsed)
+        self._last_request_time = time.time()
 
     async def search_papers(self, query: str, max_results: int = 10) -> List[str]:
         try:
+            await self._rate_limit()
             logger.info(f"Searching PubMed for: {query}")
             search_url = f"{self.base_url}esearch.fcgi"
             params = {

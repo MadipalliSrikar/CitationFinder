@@ -1,17 +1,17 @@
-import time  # Must be at the very top
-import asyncio
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 import logging
 from datetime import datetime
-from typing import List, Dict, Optional
-from pydantic import BaseModel
+from typing import List, Optional
+from pydantic import BaseModel, ConfigDict
+import contextlib
 
+from src.core.database import get_db, AsyncSessionLocal
 from shared.models import Paper, Author
-from src.core.database import get_db
 from src.core.pubmed_service import PubMedService
+
 
 # Configure logging
 logging.basicConfig(
@@ -23,9 +23,7 @@ logger = logging.getLogger(__name__)
 # FastAPI Models
 class AuthorResponse(BaseModel):
     name: str
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PaperResponse(BaseModel):
     pmid: str
@@ -34,9 +32,7 @@ class PaperResponse(BaseModel):
     publication_date: Optional[datetime]
     journal: Optional[str]
     authors: List[AuthorResponse]
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class IngestRequest(BaseModel):
     query: str
@@ -75,74 +71,78 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         }
 
 async def store_paper(db: AsyncSession, paper_data: dict) -> Paper:
-    """Store paper and related data in the database"""
-    try:
-        # Check if paper already exists
-        existing_paper = await db.execute(
-            select(Paper).where(Paper.pmid == paper_data['pmid'])
-        )
-        existing_paper = existing_paper.scalar_one_or_none()
+    # Check if paper exists
+    query = select(Paper).where(Paper.pmid == paper_data['pmid'])
+    result = await db.execute(query)
+    existing_paper = result.scalar_one_or_none()
+    
+    if existing_paper:
+        return existing_paper
         
-        if existing_paper:
-            return existing_paper
-            
-        # Create new paper
-        paper = Paper(
-            pmid=paper_data['pmid'],
-            title=paper_data['title'],
-            abstract=paper_data['abstract'],
-            publication_date=paper_data['publication_date'],
-            journal=paper_data['journal'],
-            full_text=paper_data.get('full_text', '')
-        )
+    # Create new paper
+    paper = Paper(
+        pmid=paper_data['pmid'],
+        title=paper_data['title'],
+        abstract=paper_data['abstract'],
+        publication_date=paper_data['publication_date'],
+        journal=paper_data['journal'],
+        full_text=paper_data.get('full_text', '')
+    )
+    
+    # Add authors
+    for author_name in paper_data['authors']:
+        query = select(Author).where(Author.name == author_name)
+        result = await db.execute(query)
+        existing_author = result.scalar_one_or_none()
         
-        # Add authors
-        for author_name in paper_data['authors']:
-            # Check if author exists
-            existing_author = await db.execute(
-                select(Author).where(Author.name == author_name)
-            )
-            existing_author = existing_author.scalar_one_or_none()
-            
-            if existing_author:
-                author = existing_author
-            else:
-                author = Author(name=author_name)
-                db.add(author)
-            
-            paper.authors.append(author)
+        if existing_author:
+            author = existing_author
+        else:
+            author = Author(name=author_name)
+            db.add(author)
+            await db.flush()
         
-        # Add paper to session
-        db.add(paper)
-        await db.commit()
-        await db.refresh(paper)
-        
-        return paper
-        
-    except Exception as e:
-        await db.rollback()
-        logger.error(f"Error storing paper: {str(e)}")
-        raise
+        paper.authors.append(author)
+    
+    db.add(paper)
+    await db.flush()
+    await db.refresh(paper)
+    
+    return paper
+
+@contextlib.asynccontextmanager
+async def transaction(session):
+    if not session.in_transaction():
+        async with session.begin():
+            yield
+    else:
+        yield
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest_data(request: IngestRequest, db: AsyncSession = Depends(get_db)):
+    stored_papers = []
     try:
-        logger.info(f"Starting ingestion for query: {request.query}")
-        
-        # Search for papers
         pmids = await pubmed_service.search_papers(request.query, request.limit)
         
-        stored_papers = []
         for pmid in pmids:
             try:
-                # Fetch detailed paper data - no sleep needed as PubMedService handles rate limiting
                 paper_details = await pubmed_service.fetch_paper_details(pmid)
-                
                 if paper_details:
-                    paper = await store_paper(db, paper_details)
-                    paper_response = PaperResponse.from_orm(paper)
-                    stored_papers.append(paper_response)
-                    
+                    async with AsyncSessionLocal() as session:
+                        async with session.begin():
+                            paper = await store_paper(session, paper_details)
+                            # Explicitly load authors before validation
+                            await session.refresh(paper, ['authors'])
+                            authors = [AuthorResponse(name=author.name) for author in paper.authors]
+                            paper_response = PaperResponse(
+                                pmid=paper.pmid,
+                                title=paper.title,
+                                abstract=paper.abstract,
+                                publication_date=paper.publication_date,
+                                journal=paper.journal,
+                                authors=authors
+                            )
+                            stored_papers.append(paper_response)
             except Exception as e:
                 logger.error(f"Error processing paper {pmid}: {str(e)}")
                 continue
@@ -152,7 +152,6 @@ async def ingest_data(request: IngestRequest, db: AsyncSession = Depends(get_db)
             ingested_count=len(stored_papers),
             papers=stored_papers
         )
-        
     except Exception as e:
         logger.error(f"Ingestion error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

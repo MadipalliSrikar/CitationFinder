@@ -1,0 +1,14 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+transformers==4.35.2
+torch==2.1.1
+llama-index==0.9.7
+numpy==1.26.2
+httpx==0.25.2
+python-multipart==0.0.6
+requests==2.31.0
+sentencepiece==0.1.99
+sentence-transformers==2.2.2
