@@ -1,3 +1,4 @@
+# Description: Dockerfile for the RAG service
 FROM python:3.9-slim
 
 WORKDIR /app

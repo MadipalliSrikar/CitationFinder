@@ -1,3 +1,4 @@
+# Description: This file is used to install the shared package. It is a simple package that contains the shared models and database connection.
 from setuptools import setup, find_packages
 
 setup(

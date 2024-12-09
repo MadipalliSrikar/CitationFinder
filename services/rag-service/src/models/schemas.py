@@ -1,39 +1,52 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
 
-class Author(BaseModel):
-    name: str
+class RAGRequest(BaseModel):
+    query: str
+    max_context_chunks: int = 5
 
-class Paper(BaseModel):
-    pmid: str
+class SourceChunk(BaseModel):
+    text: str
+    document_id: str
     title: str
-    abstract: Optional[str] = None
-    publication_date: Optional[datetime] = None
-    journal: Optional[str] = None
-    authors: Optional[List[Author]] = Field(default_factory=list)  # Make authors optional with default empty list
+    score: float
+
+class RAGResponse(BaseModel):
+    query: str
+    response: str
+    sources: List[SourceChunk]
+    metadata: dict
+
+class DocumentInput(BaseModel):
+    document_id: str
+    title: str
+    content: str
+    metadata: dict = {}
+
+class IndexStats(BaseModel):
+    document_count: int
+    last_updated: datetime
+    embedding_model: str
+    index_size: int
 
 class PaperQuery(BaseModel):
     query: str
     max_results: int = 10
 
-class ProcessingRequest(BaseModel):
-    text: str
-    task: str = "summarize"  # summarize, analyze, extract_methods, find_conclusions
+class Paper(BaseModel):
+    pmid: str
+    title: str
+    abstract: Optional[str]
+    publication_date: Optional[datetime]
+    journal: Optional[str]
+    authors: List[dict]
 
 class QueryRequest(BaseModel):
     query: str
-    query_type: str = "basic"  # basic, methodology, findings, comparison, limitations
-
-class ProcessingResponse(BaseModel):
-    result: str
-    processing_time: float
+    query_type: str
 
 class SearchResponse(BaseModel):
-    response: str
-    sources: Optional[List[Dict[str, Any]]] = None
-    processing_time: float
-
-class StatusResponse(BaseModel):
-    status: str
-    message: str
+    total_results: int
+    results: List[Paper]
+    metadata: dict

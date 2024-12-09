@@ -1,3 +1,4 @@
+# Description: Define the Paper model
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Table, ForeignKey
 from sqlalchemy.orm import relationship, declarative_base

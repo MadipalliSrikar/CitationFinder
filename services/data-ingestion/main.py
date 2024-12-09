@@ -1,6 +1,8 @@
+# Data ingestion service main FastAPI application
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import text
 from sqlalchemy.orm import selectinload
 import logging
 from datetime import datetime
@@ -50,16 +52,11 @@ pubmed_service = PubMedService()
 @app.get("/health")
 async def health_check(db: AsyncSession = Depends(get_db)):
     try:
-        # Check database connection
-        await db.execute("SELECT 1")
-        
-        # Check PubMed API
-        await pubmed_service.search_papers("test", 1)
-        
+        # Using text() for raw SQL
+        await db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
             "database": "connected",
-            "pubmed_api": "connected",
             "timestamp": datetime.utcnow()
         }
     except Exception as e:
@@ -122,31 +119,45 @@ async def transaction(session):
 async def ingest_data(request: IngestRequest, db: AsyncSession = Depends(get_db)):
     stored_papers = []
     try:
-        pmids = await pubmed_service.search_papers(request.query, request.limit)
+        logger.info(f"Starting ingestion for query: {request.query}, limit: {request.limit}")
         
-        for pmid in pmids:
-            try:
-                paper_details = await pubmed_service.fetch_paper_details(pmid)
-                if paper_details:
-                    async with AsyncSessionLocal() as session:
-                        async with session.begin():
-                            paper = await store_paper(session, paper_details)
-                            # Explicitly load authors before validation
-                            await session.refresh(paper, ['authors'])
-                            authors = [AuthorResponse(name=author.name) for author in paper.authors]
-                            paper_response = PaperResponse(
-                                pmid=paper.pmid,
-                                title=paper.title,
-                                abstract=paper.abstract,
-                                publication_date=paper.publication_date,
-                                journal=paper.journal,
-                                authors=authors
-                            )
-                            stored_papers.append(paper_response)
-            except Exception as e:
-                logger.error(f"Error processing paper {pmid}: {str(e)}")
-                continue
+        # Initialize PubMed service
+        async with PubMedService() as pubmed:  # Use context manager if not already initialized
+            logger.info("Searching PubMed for papers...")
+            pmids = await pubmed.search_papers(request.query, request.limit)
+            logger.info(f"Found {len(pmids)} papers: {pmids}")
+            
+            for pmid in pmids:
+                try:
+                    logger.info(f"Fetching details for PMID: {pmid}")
+                    paper_details = await pubmed.fetch_paper_details(pmid)
+                    
+                    if paper_details:
+                        logger.info(f"Processing paper: {paper_details.get('title', '')[:50]}...")
+                        async with AsyncSessionLocal() as session:
+                            async with session.begin():
+                                paper = await store_paper(session, paper_details)
+                                logger.info(f"Stored paper with PMID: {paper.pmid}")
+                                
+                                # Explicitly load authors
+                                await session.refresh(paper, ['authors'])
+                                authors = [AuthorResponse(name=author.name) for author in paper.authors]
+                                
+                                paper_response = PaperResponse(
+                                    pmid=paper.pmid,
+                                    title=paper.title,
+                                    abstract=paper.abstract,
+                                    publication_date=paper.publication_date,
+                                    journal=paper.journal,
+                                    authors=authors
+                                )
+                                stored_papers.append(paper_response)
+                                logger.info(f"Added paper to response: {paper.pmid}")
+                except Exception as e:
+                    logger.error(f"Error processing paper {pmid}: {str(e)}")
+                    continue
         
+        logger.info(f"Completed ingestion. Total papers stored: {len(stored_papers)}")
         return IngestResponse(
             message=f"Successfully ingested papers for query: {request.query}",
             ingested_count=len(stored_papers),

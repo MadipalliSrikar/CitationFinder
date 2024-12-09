@@ -1,128 +1,63 @@
 from fastapi import FastAPI, HTTPException, Depends
-from .models.schemas import (
-    PaperQuery, Paper, ProcessingRequest, 
-    QueryRequest, ProcessingResponse, 
-    SearchResponse, StatusResponse
-)
-from .core.research_service import ResearchService
-from .core.pubmed_service import PubMedService
-from .core.config import get_settings
-from .utils.logger import setup_logger
-from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+from sqlalchemy import text
+from typing import Dict, Any
+from pydantic import BaseModel
+from datetime import datetime
 
-logger = setup_logger(__name__)
+from src.core.database import get_db
+from src.core.rag_service import RAGService
+from src.core.config import get_settings
+
+logger = logging.getLogger(__name__)
+app = FastAPI(title="RAG Service")
 settings = get_settings()
 
-app = FastAPI(title=settings.app_name)
+class QueryRequest(BaseModel):
+    query: str
+    top_k: int = 5
 
-# Initialize services
-research_service = ResearchService()
-pubmed_service = PubMedService()
-
-@app.get("/health", response_model=StatusResponse)
-async def health_check():
-    """Health check endpoint"""
-    return StatusResponse(
-        status="healthy",
-        message="Service is running"
-    )
-
-@app.post("/papers/search")
-async def search_papers(query: PaperQuery):
-    """Search for papers in PubMed Central"""
+@app.get("/health")
+async def health_check(db: AsyncSession = Depends(get_db)):
+    """Check service health including database connection"""
     try:
-        pmids = await pubmed_service.search_papers(
-            query.query, 
-            query.max_results
-        )
-        papers = []
-        for pmid in pmids:
-            try:
-                paper_details = await pubmed_service.fetch_paper_details(pmid)
-                # Truncate abstract if it's too long
-                if len(paper_details['abstract']) > 300:
-                    paper_details['abstract'] = paper_details['abstract'][:300] + "..."
-                
-                # Limit authors to first 5
-                if len(paper_details['authors']) > 5:
-                    # Keep only the first 5 authors as proper Author objects
-                    paper_details['authors'] = paper_details['authors'][:5]
-                    # Add author count to the paper title instead
-                    paper_details['title'] = f"{paper_details['title']} ({len(paper_details['authors'])} authors)"
-                
-                papers.append(Paper(**paper_details))
-            except Exception as e:
-                logger.error(f"Error processing paper {pmid}: {str(e)}")
-                continue
-                
-        return papers
+        # Using text() for raw SQL
+        await db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "timestamp": datetime.utcnow()
+        }
     except Exception as e:
-        logger.error(f"Error searching papers: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow()
+        }
 
-@app.post("/process", response_model=ProcessingResponse)
-async def process_text(request: ProcessingRequest):
-    """Process text using T5"""
-    try:
-        result = await research_service.process_with_t5(
-            request.text,
-            request.task
-        )
-        return ProcessingResponse(**result)
-    except Exception as e:
-        logger.error(f"Error processing text: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/index")
-async def create_index(papers: List[Paper]):
-    """Create search index from papers"""
-    try:
-        result = await research_service.create_index([
-            paper.model_dump() for paper in papers
-        ])
-        return {"message": result}
-    except Exception as e:
-        logger.error(f"Error creating index: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/search", response_model=SearchResponse)
-async def search_index(request: QueryRequest):
-    """Search the indexed papers"""
-    try:
-        result = await research_service.query_index(
-            request.query,
-            request.query_type
-        )
-        return SearchResponse(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error searching index: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
 @app.post("/rag/index")
-async def create_index(papers: List[Paper]):
-    """Create RAG index from papers"""
+async def create_index(db: AsyncSession = Depends(get_db)):
+    """Create RAG index from processed papers"""
     try:
-        # Convert papers to dict format
-        papers_dict = [paper.model_dump() for paper in papers]
-        result = await research_service.create_index_from_papers(papers_dict)
+        rag_service = RAGService(settings, db)
+        result = await rag_service.create_index_from_processed_papers()
         return {"message": result}
     except Exception as e:
         logger.error(f"Error creating index: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/rag/query", response_model=SearchResponse)
-async def query_papers(request: QueryRequest):
+@app.post("/rag/query")
+async def query_papers(request: QueryRequest, db: AsyncSession = Depends(get_db)):
     """Query papers using RAG"""
     try:
-        result = await research_service.query_papers(
-            request.query,
-            request.query_type
+        rag_service = RAGService(settings, db)
+        result = await rag_service.query_papers(
+            query=request.query,
+            top_k=request.top_k
         )
-        return SearchResponse(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return result
     except Exception as e:
         logger.error(f"Error querying papers: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
