@@ -1,0 +1,68 @@
+name: Deploy to DigitalOcean Kubernetes
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: "registry.digitalocean.com/citation-finder"
+  K8S_NAMESPACE: "citation-finder"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Install doctl
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      # Log in to DO Container Registry
+      - name: Log in to DO Container Registry
+        run: doctl registry login --expiry-seconds 600
+
+      # Build and push images
+      - name: Build and push api-gateway
+        run: |
+          docker build -t ${REGISTRY}/api-gateway:${GITHUB_SHA::8} ./services/api-gateway
+          docker push ${REGISTRY}/api-gateway:${GITHUB_SHA::8}
+
+      - name: Build and push data-ingestion
+        run: |
+          docker build -t ${REGISTRY}/data-ingestion:${GITHUB_SHA::8} ./services/data-ingestion
+          docker push ${REGISTRY}/data-ingestion:${GITHUB_SHA::8}
+
+      - name: Build and push document-processor
+        run: |
+          docker build -t ${REGISTRY}/document-processor:${GITHUB_SHA::8} ./services/document-processor
+          docker push ${REGISTRY}/document-processor:${GITHUB_SHA::8}
+
+      - name: Build and push rag-service
+        run: |
+          docker build -t ${REGISTRY}/rag-service:${GITHUB_SHA::8} ./services/rag-service
+          docker push ${REGISTRY}/rag-service:${GITHUB_SHA::8}
+
+      # Save kubeconfig
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save citation-finder-cluster
+
+      # Update deployments with new images
+      - name: Update deployment images
+        run: |
+          kubectl set image deployment/api-gateway api-gateway=${REGISTRY}/api-gateway:${GITHUB_SHA::8} -n ${K8S_NAMESPACE}
+          kubectl set image deployment/data-ingestion data-ingestion=${REGISTRY}/data-ingestion:${GITHUB_SHA::8} -n ${K8S_NAMESPACE}
+          kubectl set image deployment/document-processor document-processor=${REGISTRY}/document-processor:${GITHUB_SHA::8} -n ${K8S_NAMESPACE}
+          kubectl set image deployment/rag-service rag-service=${REGISTRY}/rag-service:${GITHUB_SHA::8} -n ${K8S_NAMESPACE}
+
+      # Verify deployments
+      - name: Verify deployments
+        run: |
+          kubectl rollout status deployment/api-gateway -n ${K8S_NAMESPACE}
+          kubectl rollout status deployment/data-ingestion -n ${K8S_NAMESPACE}
+          kubectl rollout status deployment/document-processor -n ${K8S_NAMESPACE}
+          kubectl rollout status deployment/rag-service -n ${K8S_NAMESPACE}

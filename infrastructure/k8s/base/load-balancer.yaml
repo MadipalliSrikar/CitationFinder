@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: citation-finder-lb
+  namespace: citation-finder
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-size-unit: "1"
+    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "true"
+spec:
+  type: LoadBalancer
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: citation-finder-ingress
+  namespace: citation-finder
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.citation-finder.com  # Replace with your domain
+    secretName: citation-finder-tls
+  rules:
+  - host: api.citation-finder.com  # Replace with your domain
+    http:
+      paths:
+      - path: /api/v1/ingest
+        pathType: Prefix
+        backend:
+          service:
+            name: data-ingestion
+            port:
+              number: 8000
+      - path: /api/v1/process
+        pathType: Prefix
+        backend:
+          service:
+            name: document-processor
+            port:
+              number: 8000
+      - path: /api/v1/rag
+        pathType: Prefix
+        backend:
+          service:
+            name: rag-service
+            port:
+              number: 8000

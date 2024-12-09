@@ -1,0 +1,16 @@
+torch==2.1.1
+torchvision==0.16.1
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy[asyncio]>=1.4.49
+asyncpg==0.29.0
+python-dotenv==1.0.0
+pydantic>=2.7.0,<3.0.0
+llama-index-core>=0.11.0,<0.12.0
+sentence-transformers>=2.2.2
+llama-index-embeddings-huggingface
+llama-index-vector-stores-postgres
+pydantic-settings>=2.0.0
+openai>=1.0.0
+psycopg2-binary  # Added for PostgreSQL connection
+file:///Users/srikarmadipalli/Documents/Semester-03/MIS-547/Project/citation_finder/shared

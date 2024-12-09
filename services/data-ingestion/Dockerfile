@@ -1,3 +1,4 @@
+# Description: Dockerfile for the data ingestion service
 # Stage 1: Builder
 FROM python:3.9-slim AS builder
 

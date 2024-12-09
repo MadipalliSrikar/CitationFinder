@@ -1,0 +1,16 @@
+@app.post("/papers/search")
+async def search_papers(query: PaperQuery):
+    """Search for papers in PubMed Central"""
+    try:
+        pmids = await pubmed_service.search_papers(
+            query.query, 
+            query.max_results
+        )
+        papers = []
+        for pmid in pmids:
+            paper_details = await pubmed_service.fetch_paper_details(pmid)
+            papers.append(Paper(**paper_details))
+        return papers
+    except Exception as e:
+        logger.error(f"Error searching papers: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

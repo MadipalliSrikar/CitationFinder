@@ -1,3 +1,6 @@
+# Data ingestion service PubMed API client
+import time
+import asyncio
 import httpx
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -5,6 +8,7 @@ from typing import List, Dict, Optional
 import logging
 import os
 from dotenv import load_dotenv
+
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -14,16 +18,26 @@ class PubMedService:
         self.base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
         self.api_key = os.getenv('PUBMED_API_KEY', '')
         self.client = httpx.AsyncClient(timeout=30.0)
+        self._last_request_time = 0
+        self.rate_limit_delay = 0.34
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.client.aclose()
+        
+    async def _rate_limit(self):
+        current_time = time.time()
+        elapsed = current_time - self._last_request_time
+        if elapsed < self.rate_limit_delay:
+            await asyncio.sleep(self.rate_limit_delay - elapsed)
+        self._last_request_time = time.time()
 
     async def search_papers(self, query: str, max_results: int = 10) -> List[str]:
-        """Search PubMed and return PMIDs"""
         try:
+            await self._rate_limit()
+            logger.info(f"Searching PubMed for: {query}")
             search_url = f"{self.base_url}esearch.fcgi"
             params = {
                 'db': 'pmc',
@@ -33,19 +47,39 @@ class PubMedService:
                 'api_key': self.api_key
             }
             
-            response = await self.client.get(search_url, params=params)
-            response.raise_for_status()
-            
-            root = ET.fromstring(response.content)
-            id_list = root.findall(".//Id")
-            return [id_elem.text for id_elem in id_list]
-        
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error during PubMed search: {str(e)}")
-            raise
+            async with httpx.AsyncClient() as client:
+                try:
+                    response = await client.get(search_url, params=params)
+                except httpx.RequestError as e:
+                    logger.error(f"An error occurred while requesting PubMed: {e}")
+                    return []
+                
+                if response.status_code != 200:
+                    logger.error(f"PubMed API returned an error: {response.status_code}")
+                    return []
+                
+                if "xml" not in response.headers.get("Content-Type", ""):
+                    logger.error("Response is not XML.")
+                    return []
+                
+                try:
+                    root = ET.fromstring(response.content)
+                except ET.ParseError as e:
+                    logger.error(f"Failed to parse PubMed XML response: {e}")
+                    return []
+
+                id_list = root.findall(".//Id")
+                pmids = [id_elem.text for id_elem in id_list]
+                
+                if not pmids:
+                    logger.info("No papers found for the query.")
+                else:
+                    logger.info(f"Found {len(pmids)} papers: {pmids}")
+                
+                return pmids
         except Exception as e:
-            logger.error(f"Error during PubMed search: {str(e)}")
-            raise
+            logger.error(f"An unexpected error occurred: {e}")
+            return []
 
     async def fetch_paper_details(self, pmid: str) -> Dict:
         """Fetch detailed paper information"""

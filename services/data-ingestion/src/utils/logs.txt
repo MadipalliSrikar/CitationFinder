@@ -1,0 +1,572 @@
+curl -X POST http://localhost:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Addisons", "limit": 5}'
+
+{"message":"Successfully ingested papers for query: Addisons","ingested_count":0,"papers":[]}% 
+
+
+
+kubectl logs -f data-ingestion-7b64894d97-6dbhw -n citation-finder
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2024-12-06 20:40:14,811 - src.core.pubmed_service - INFO - Searching PubMed for: Addisons
+2024-12-06 20:40:15,296 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Addisons%20AND%20open%20access%5Bfilter%5D&retmax=5&usehistory=y&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:15,300 - src.core.pubmed_service - INFO - Found 5 papers: ['11595046', '11265159', '10885794', '10766260', '10870986']
+2024-12-06 20:40:15,666 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11595046&retmode=xml&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:15,864 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2024-12-06 20:40:15,864 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2024-12-06 20:40:15,864 INFO sqlalchemy.engine.Engine [raw sql] ()
+2024-12-06 20:40:15,864 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2024-12-06 20:40:15,873 INFO sqlalchemy.engine.Engine select current_schema()
+2024-12-06 20:40:15,873 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2024-12-06 20:40:15,874 INFO sqlalchemy.engine.Engine [raw sql] ()
+2024-12-06 20:40:15,874 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2024-12-06 20:40:15,880 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2024-12-06 20:40:15,880 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2024-12-06 20:40:15,881 INFO sqlalchemy.engine.Engine [raw sql] ()
+2024-12-06 20:40:15,881 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2024-12-06 20:40:15,887 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2024-12-06 20:40:15,887 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2024-12-06 20:40:15,909 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:15,909 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:15,909 INFO sqlalchemy.engine.Engine [generated in 0.00051s] ('11595046',)
+2024-12-06 20:40:15,909 - sqlalchemy.engine.Engine - INFO - [generated in 0.00051s] ('11595046',)
+2024-12-06 20:40:15,920 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:15,920 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:15,922 INFO sqlalchemy.engine.Engine [generated in 0.00097s] ('Mary Garvey',)
+2024-12-06 20:40:15,922 - sqlalchemy.engine.Engine - INFO - [generated in 0.00097s] ('Mary Garvey',)
+2024-12-06 20:40:15,931 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:15,931 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:15,932 INFO sqlalchemy.engine.Engine [generated in 0.00147s] ('Mary Garvey', datetime.datetime(2024, 12, 6, 20, 40, 15, 930919))
+2024-12-06 20:40:15,932 - sqlalchemy.engine.Engine - INFO - [generated in 0.00147s] ('Mary Garvey', datetime.datetime(2024, 12, 6, 20, 40, 15, 930919))
+2024-12-06 20:40:15,944 INFO sqlalchemy.engine.Engine INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:15,944 - sqlalchemy.engine.Engine - INFO - INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:15,945 INFO sqlalchemy.engine.Engine [generated in 0.00089s] ('11595046', 'Endometriosis: Future Biological Perspectives for Diagnosis and Treatment', 'Endometriosis is an oestrogen-dependent inflammatory disease affecting menstruating women, with varying levels of severity. Oestrogen dysregulation i ... (1414 characters truncated) ... , sensitive, and specific models of endometriosis in humans are urgently needed to investigate and detail the aetiology of this debilitating disease.', datetime.datetime(2024, 11, 14, 0, 0), 'International Journal of Molecular Sciences', '1. Introduction \n       Endometriosis is a progressive inflammatory disease, dependent on the hormone oestrogen, in which endometrial tissue migrate ... (61227 characters truncated) ... ities available, many women will continue to suffer chronically with poor quality of life, possible infertility, and associated mental health issues.', datetime.datetime(2024, 12, 6, 20, 40, 15, 944630), datetime.datetime(2024, 12, 6, 20, 40, 15, 944639))
+2024-12-06 20:40:15,945 - sqlalchemy.engine.Engine - INFO - [generated in 0.00089s] ('11595046', 'Endometriosis: Future Biological Perspectives for Diagnosis and Treatment', 'Endometriosis is an oestrogen-dependent inflammatory disease affecting menstruating women, with varying levels of severity. Oestrogen dysregulation i ... (1414 characters truncated) ... , sensitive, and specific models of endometriosis in humans are urgently needed to investigate and detail the aetiology of this debilitating disease.', datetime.datetime(2024, 11, 14, 0, 0), 'International Journal of Molecular Sciences', '1. Introduction \n       Endometriosis is a progressive inflammatory disease, dependent on the hormone oestrogen, in which endometrial tissue migrate ... (61227 characters truncated) ... ities available, many women will continue to suffer chronically with poor quality of life, possible infertility, and associated mental health issues.', datetime.datetime(2024, 12, 6, 20, 40, 15, 944630), datetime.datetime(2024, 12, 6, 20, 40, 15, 944639))
+2024-12-06 20:40:15,963 INFO sqlalchemy.engine.Engine INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:15,963 - sqlalchemy.engine.Engine - INFO - INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:15,964 INFO sqlalchemy.engine.Engine [generated in 0.00062s] (22, 162)
+2024-12-06 20:40:15,964 - sqlalchemy.engine.Engine - INFO - [generated in 0.00062s] (22, 162)
+2024-12-06 20:40:15,975 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:15,975 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:15,976 INFO sqlalchemy.engine.Engine [generated in 0.00046s] (22,)
+2024-12-06 20:40:15,976 - sqlalchemy.engine.Engine - INFO - [generated in 0.00046s] (22,)
+2024-12-06 20:40:15,985 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2024-12-06 20:40:15,985 INFO sqlalchemy.engine.Engine ROLLBACK
+2024-12-06 20:40:15,988 - main - ERROR - Error processing paper 11595046: No column-based properties specified for refresh operation. Use session.expire() to reload collections and related items.
+2024-12-06 20:40:16,132 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11265159&retmode=xml&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:16,207 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2024-12-06 20:40:16,207 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2024-12-06 20:40:16,210 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:16,210 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:16,212 - sqlalchemy.engine.Engine - INFO - [cached since 0.3034s ago] ('11265159',)
+2024-12-06 20:40:16,212 INFO sqlalchemy.engine.Engine [cached since 0.3034s ago] ('11265159',)
+2024-12-06 20:40:16,218 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,219 INFO sqlalchemy.engine.Engine [cached since 0.2986s ago] ('Eka Melson',)
+2024-12-06 20:40:16,218 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,219 - sqlalchemy.engine.Engine - INFO - [cached since 0.2986s ago] ('Eka Melson',)
+2024-12-06 20:40:16,223 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,223 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,224 - sqlalchemy.engine.Engine - INFO - [cached since 0.2938s ago] ('Eka Melson', datetime.datetime(2024, 12, 6, 20, 40, 16, 223655))
+2024-12-06 20:40:16,224 INFO sqlalchemy.engine.Engine [cached since 0.2938s ago] ('Eka Melson', datetime.datetime(2024, 12, 6, 20, 40, 16, 223655))
+2024-12-06 20:40:16,230 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,230 INFO sqlalchemy.engine.Engine [cached since 0.3101s ago] ('Fatema Rezai',)
+2024-12-06 20:40:16,230 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,230 - sqlalchemy.engine.Engine - INFO - [cached since 0.3101s ago] ('Fatema Rezai',)
+2024-12-06 20:40:16,235 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,235 INFO sqlalchemy.engine.Engine [cached since 0.3053s ago] ('Fatema Rezai', datetime.datetime(2024, 12, 6, 20, 40, 16, 235373))
+2024-12-06 20:40:16,235 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,235 - sqlalchemy.engine.Engine - INFO - [cached since 0.3053s ago] ('Fatema Rezai', datetime.datetime(2024, 12, 6, 20, 40, 16, 235373))
+2024-12-06 20:40:16,241 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,242 INFO sqlalchemy.engine.Engine [cached since 0.3216s ago] ('Carina Pan',)
+2024-12-06 20:40:16,241 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,242 - sqlalchemy.engine.Engine - INFO - [cached since 0.3216s ago] ('Carina Pan',)
+2024-12-06 20:40:16,248 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,248 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,248 INFO sqlalchemy.engine.Engine [cached since 0.3183s ago] ('Carina Pan', datetime.datetime(2024, 12, 6, 20, 40, 16, 248222))
+2024-12-06 20:40:16,248 - sqlalchemy.engine.Engine - INFO - [cached since 0.3183s ago] ('Carina Pan', datetime.datetime(2024, 12, 6, 20, 40, 16, 248222))
+2024-12-06 20:40:16,255 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,255 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,259 INFO sqlalchemy.engine.Engine [cached since 0.3375s ago] ('Sung Yat Ng',)
+2024-12-06 20:40:16,259 - sqlalchemy.engine.Engine - INFO - [cached since 0.3375s ago] ('Sung Yat Ng',)
+2024-12-06 20:40:16,264 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,264 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,266 INFO sqlalchemy.engine.Engine [cached since 0.3358s ago] ('Sung Yat Ng', datetime.datetime(2024, 12, 6, 20, 40, 16, 264326))
+2024-12-06 20:40:16,266 - sqlalchemy.engine.Engine - INFO - [cached since 0.3358s ago] ('Sung Yat Ng', datetime.datetime(2024, 12, 6, 20, 40, 16, 264326))
+2024-12-06 20:40:16,272 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,272 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,273 INFO sqlalchemy.engine.Engine [cached since 0.3525s ago] ('Tamzin Ogiliev',)
+2024-12-06 20:40:16,273 - sqlalchemy.engine.Engine - INFO - [cached since 0.3525s ago] ('Tamzin Ogiliev',)
+2024-12-06 20:40:16,278 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,278 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,279 INFO sqlalchemy.engine.Engine [cached since 0.3491s ago] ('Tamzin Ogiliev', datetime.datetime(2024, 12, 6, 20, 40, 16, 278859))
+2024-12-06 20:40:16,279 - sqlalchemy.engine.Engine - INFO - [cached since 0.3491s ago] ('Tamzin Ogiliev', datetime.datetime(2024, 12, 6, 20, 40, 16, 278859))
+2024-12-06 20:40:16,286 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,286 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,287 INFO sqlalchemy.engine.Engine [cached since 0.3669s ago] ('Ella Blendis',)
+2024-12-06 20:40:16,287 - sqlalchemy.engine.Engine - INFO - [cached since 0.3669s ago] ('Ella Blendis',)
+2024-12-06 20:40:16,294 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,294 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,296 INFO sqlalchemy.engine.Engine [cached since 0.3652s ago] ('Ella Blendis', datetime.datetime(2024, 12, 6, 20, 40, 16, 294134))
+2024-12-06 20:40:16,296 - sqlalchemy.engine.Engine - INFO - [cached since 0.3652s ago] ('Ella Blendis', datetime.datetime(2024, 12, 6, 20, 40, 16, 294134))
+2024-12-06 20:40:16,309 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,309 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,309 INFO sqlalchemy.engine.Engine [cached since 0.3891s ago] ('Haaziq Sheikh',)
+2024-12-06 20:40:16,309 - sqlalchemy.engine.Engine - INFO - [cached since 0.3891s ago] ('Haaziq Sheikh',)
+2024-12-06 20:40:16,327 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,328 INFO sqlalchemy.engine.Engine [cached since 0.3977s ago] ('Haaziq Sheikh', datetime.datetime(2024, 12, 6, 20, 40, 16, 327816))
+2024-12-06 20:40:16,327 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,328 - sqlalchemy.engine.Engine - INFO - [cached since 0.3977s ago] ('Haaziq Sheikh', datetime.datetime(2024, 12, 6, 20, 40, 16, 327816))
+2024-12-06 20:40:16,342 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,342 - sqlalchemy.engine.Engine - INFO - [cached since 0.4222s ago] ('Harjeet Kaur',)
+2024-12-06 20:40:16,342 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,342 INFO sqlalchemy.engine.Engine [cached since 0.4222s ago] ('Harjeet Kaur',)
+2024-12-06 20:40:16,345 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,345 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,346 INFO sqlalchemy.engine.Engine [cached since 0.4156s ago] ('Harjeet Kaur', datetime.datetime(2024, 12, 6, 20, 40, 16, 345785))
+2024-12-06 20:40:16,346 - sqlalchemy.engine.Engine - INFO - [cached since 0.4156s ago] ('Harjeet Kaur', datetime.datetime(2024, 12, 6, 20, 40, 16, 345785))
+2024-12-06 20:40:16,349 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,349 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,350 INFO sqlalchemy.engine.Engine [cached since 0.4293s ago] ('Catherine Cooper',)
+2024-12-06 20:40:16,350 - sqlalchemy.engine.Engine - INFO - [cached since 0.4293s ago] ('Catherine Cooper',)
+2024-12-06 20:40:16,352 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,352 - sqlalchemy.engine.Engine - INFO - [cached since 0.4224s ago] ('Catherine Cooper', datetime.datetime(2024, 12, 6, 20, 40, 16, 352612))
+2024-12-06 20:40:16,352 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,352 INFO sqlalchemy.engine.Engine [cached since 0.4224s ago] ('Catherine Cooper', datetime.datetime(2024, 12, 6, 20, 40, 16, 352612))
+2024-12-06 20:40:16,363 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,363 - sqlalchemy.engine.Engine - INFO - [cached since 0.4426s ago] ('Farah Abdelhameed',)
+2024-12-06 20:40:16,363 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,363 INFO sqlalchemy.engine.Engine [cached since 0.4426s ago] ('Farah Abdelhameed',)
+2024-12-06 20:40:16,366 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,366 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,367 INFO sqlalchemy.engine.Engine [cached since 0.4364s ago] ('Farah Abdelhameed', datetime.datetime(2024, 12, 6, 20, 40, 16, 366640))
+2024-12-06 20:40:16,367 - sqlalchemy.engine.Engine - INFO - [cached since 0.4364s ago] ('Farah Abdelhameed', datetime.datetime(2024, 12, 6, 20, 40, 16, 366640))
+2024-12-06 20:40:16,371 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,371 INFO sqlalchemy.engine.Engine [cached since 0.4508s ago] ('Francesca Pang',)
+2024-12-06 20:40:16,371 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,371 - sqlalchemy.engine.Engine - INFO - [cached since 0.4508s ago] ('Francesca Pang',)
+2024-12-06 20:40:16,374 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,374 - sqlalchemy.engine.Engine - INFO - [cached since 0.4442s ago] ('Francesca Pang', datetime.datetime(2024, 12, 6, 20, 40, 16, 374399))
+2024-12-06 20:40:16,374 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,374 INFO sqlalchemy.engine.Engine [cached since 0.4442s ago] ('Francesca Pang', datetime.datetime(2024, 12, 6, 20, 40, 16, 374399))
+2024-12-06 20:40:16,378 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,378 - sqlalchemy.engine.Engine - INFO - [cached since 0.4582s ago] ('Shreya Bhatt',)
+2024-12-06 20:40:16,378 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,378 INFO sqlalchemy.engine.Engine [cached since 0.4582s ago] ('Shreya Bhatt',)
+2024-12-06 20:40:16,382 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,382 - sqlalchemy.engine.Engine - INFO - [cached since 0.4519s ago] ('Shreya Bhatt', datetime.datetime(2024, 12, 6, 20, 40, 16, 382140))
+2024-12-06 20:40:16,382 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,382 INFO sqlalchemy.engine.Engine [cached since 0.4519s ago] ('Shreya Bhatt', datetime.datetime(2024, 12, 6, 20, 40, 16, 382140))
+2024-12-06 20:40:16,386 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,386 - sqlalchemy.engine.Engine - INFO - [cached since 0.4657s ago] ('Dania Shabbir',)
+2024-12-06 20:40:16,386 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,386 INFO sqlalchemy.engine.Engine [cached since 0.4657s ago] ('Dania Shabbir',)
+2024-12-06 20:40:16,389 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,389 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,389 INFO sqlalchemy.engine.Engine [cached since 0.4589s ago] ('Dania Shabbir', datetime.datetime(2024, 12, 6, 20, 40, 16, 389010))
+2024-12-06 20:40:16,389 - sqlalchemy.engine.Engine - INFO - [cached since 0.4589s ago] ('Dania Shabbir', datetime.datetime(2024, 12, 6, 20, 40, 16, 389010))
+2024-12-06 20:40:16,394 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,394 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,394 INFO sqlalchemy.engine.Engine [cached since 0.4736s ago] ('Zahra Olateju',)
+2024-12-06 20:40:16,394 - sqlalchemy.engine.Engine - INFO - [cached since 0.4736s ago] ('Zahra Olateju',)
+2024-12-06 20:40:16,399 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,400 INFO sqlalchemy.engine.Engine [cached since 0.4694s ago] ('Zahra Olateju', datetime.datetime(2024, 12, 6, 20, 40, 16, 399614))
+2024-12-06 20:40:16,399 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,400 - sqlalchemy.engine.Engine - INFO - [cached since 0.4694s ago] ('Zahra Olateju', datetime.datetime(2024, 12, 6, 20, 40, 16, 399614))
+2024-12-06 20:40:16,404 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,404 - sqlalchemy.engine.Engine - INFO - [cached since 0.4838s ago] ('Eloise Radcliffe',)
+2024-12-06 20:40:16,404 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,404 INFO sqlalchemy.engine.Engine [cached since 0.4838s ago] ('Eloise Radcliffe',)
+2024-12-06 20:40:16,408 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,408 INFO sqlalchemy.engine.Engine [cached since 0.4783s ago] ('Eloise Radcliffe', datetime.datetime(2024, 12, 6, 20, 40, 16, 408564))
+2024-12-06 20:40:16,408 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,408 - sqlalchemy.engine.Engine - INFO - [cached since 0.4783s ago] ('Eloise Radcliffe', datetime.datetime(2024, 12, 6, 20, 40, 16, 408564))
+2024-12-06 20:40:16,413 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,413 INFO sqlalchemy.engine.Engine [cached since 0.4932s ago] ('Prashanthan Balendran',)
+2024-12-06 20:40:16,413 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,413 - sqlalchemy.engine.Engine - INFO - [cached since 0.4932s ago] ('Prashanthan Balendran',)
+2024-12-06 20:40:16,418 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,418 - sqlalchemy.engine.Engine - INFO - [cached since 0.4882s ago] ('Prashanthan Balendran', datetime.datetime(2024, 12, 6, 20, 40, 16, 418397))
+2024-12-06 20:40:16,418 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,418 INFO sqlalchemy.engine.Engine [cached since 0.4882s ago] ('Prashanthan Balendran', datetime.datetime(2024, 12, 6, 20, 40, 16, 418397))
+2024-12-06 20:40:16,424 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,424 - sqlalchemy.engine.Engine - INFO - [cached since 0.5038s ago] ('Abby Radcliffe',)
+2024-12-06 20:40:16,424 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,424 INFO sqlalchemy.engine.Engine [cached since 0.5038s ago] ('Abby Radcliffe',)
+2024-12-06 20:40:16,429 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,430 INFO sqlalchemy.engine.Engine [cached since 0.4996s ago] ('Abby Radcliffe', datetime.datetime(2024, 12, 6, 20, 40, 16, 429798))
+2024-12-06 20:40:16,429 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,430 - sqlalchemy.engine.Engine - INFO - [cached since 0.4996s ago] ('Abby Radcliffe', datetime.datetime(2024, 12, 6, 20, 40, 16, 429798))
+2024-12-06 20:40:16,435 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,435 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,437 - sqlalchemy.engine.Engine - INFO - [cached since 0.5159s ago] ('Gar Mun Lau',)
+2024-12-06 20:40:16,437 INFO sqlalchemy.engine.Engine [cached since 0.5159s ago] ('Gar Mun Lau',)
+2024-12-06 20:40:16,442 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,442 - sqlalchemy.engine.Engine - INFO - [cached since 0.5121s ago] ('Gar Mun Lau', datetime.datetime(2024, 12, 6, 20, 40, 16, 442332))
+2024-12-06 20:40:16,442 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,442 INFO sqlalchemy.engine.Engine [cached since 0.5121s ago] ('Gar Mun Lau', datetime.datetime(2024, 12, 6, 20, 40, 16, 442332))
+2024-12-06 20:40:16,447 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,448 INFO sqlalchemy.engine.Engine [cached since 0.5275s ago] ('Meri Davitadze',)
+2024-12-06 20:40:16,447 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,448 - sqlalchemy.engine.Engine - INFO - [cached since 0.5275s ago] ('Meri Davitadze',)
+2024-12-06 20:40:16,452 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,452 - sqlalchemy.engine.Engine - INFO - [cached since 0.5221s ago] ('Meri Davitadze', datetime.datetime(2024, 12, 6, 20, 40, 16, 452252))
+2024-12-06 20:40:16,452 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,452 INFO sqlalchemy.engine.Engine [cached since 0.5221s ago] ('Meri Davitadze', datetime.datetime(2024, 12, 6, 20, 40, 16, 452252))
+2024-12-06 20:40:16,458 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,459 - sqlalchemy.engine.Engine - INFO - [cached since 0.5385s ago] ('Dengyi Zhou',)
+2024-12-06 20:40:16,458 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,459 INFO sqlalchemy.engine.Engine [cached since 0.5385s ago] ('Dengyi Zhou',)
+2024-12-06 20:40:16,463 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,464 INFO sqlalchemy.engine.Engine [cached since 0.5337s ago] ('Dengyi Zhou', datetime.datetime(2024, 12, 6, 20, 40, 16, 463858))
+2024-12-06 20:40:16,463 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,464 - sqlalchemy.engine.Engine - INFO - [cached since 0.5337s ago] ('Dengyi Zhou', datetime.datetime(2024, 12, 6, 20, 40, 16, 463858))
+2024-12-06 20:40:16,470 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,470 - sqlalchemy.engine.Engine - INFO - [cached since 0.5496s ago] ('Kashish Malhotra',)
+2024-12-06 20:40:16,470 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,470 INFO sqlalchemy.engine.Engine [cached since 0.5496s ago] ('Kashish Malhotra',)
+2024-12-06 20:40:16,474 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,474 - sqlalchemy.engine.Engine - INFO - [cached since 0.5438s ago] ('Kashish Malhotra', datetime.datetime(2024, 12, 6, 20, 40, 16, 473946))
+2024-12-06 20:40:16,474 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,474 INFO sqlalchemy.engine.Engine [cached since 0.5438s ago] ('Kashish Malhotra', datetime.datetime(2024, 12, 6, 20, 40, 16, 473946))
+2024-12-06 20:40:16,480 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,480 - sqlalchemy.engine.Engine - INFO - [cached since 0.5599s ago] ('Caroline Gillett',)
+2024-12-06 20:40:16,480 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,480 INFO sqlalchemy.engine.Engine [cached since 0.5599s ago] ('Caroline Gillett',)
+2024-12-06 20:40:16,484 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,484 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,485 - sqlalchemy.engine.Engine - INFO - [cached since 0.5546s ago] ('Caroline Gillett', datetime.datetime(2024, 12, 6, 20, 40, 16, 484871))
+2024-12-06 20:40:16,485 INFO sqlalchemy.engine.Engine [cached since 0.5546s ago] ('Caroline Gillett', datetime.datetime(2024, 12, 6, 20, 40, 16, 484871))
+2024-12-06 20:40:16,489 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,490 - sqlalchemy.engine.Engine - INFO - [cached since 0.5694s ago] ('Punith Kempegowda',)
+2024-12-06 20:40:16,489 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,490 INFO sqlalchemy.engine.Engine [cached since 0.5694s ago] ('Punith Kempegowda',)
+2024-12-06 20:40:16,494 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,494 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,495 INFO sqlalchemy.engine.Engine [cached since 0.5641s ago] ('Punith Kempegowda', datetime.datetime(2024, 12, 6, 20, 40, 16, 494321))
+2024-12-06 20:40:16,495 - sqlalchemy.engine.Engine - INFO - [cached since 0.5641s ago] ('Punith Kempegowda', datetime.datetime(2024, 12, 6, 20, 40, 16, 494321))
+2024-12-06 20:40:16,500 INFO sqlalchemy.engine.Engine INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:16,500 - sqlalchemy.engine.Engine - INFO - INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:16,501 INFO sqlalchemy.engine.Engine [cached since 0.5566s ago] ('11265159', 'Reducing the Gap in Knowledge and Expectations between Clinicians and People with Polycystic Ovary Syndrome or Adrenal Conditions: Simulation via Instant Messaging—Birmingham Advance: Patient and Public Involvement (SIMBA-PPI) Study', "Background To evaluate the efficacy of SIMBA as an educational intervention for both HCPs and people with either PCOS or adrenal conditions and to st ... (1813 characters truncated) ... nd HCPs involved in their care. Supplementary Information The online version contains supplementary material available at 10.1186/s12909-024-05772-w.", datetime.datetime(2024, 7, 22, 0, 0), 'BMC Medical Education', "Introduction \n       Patient and public involvement (PPI) are essential for an equal partnership in clinical decisions and patient-centred care [ 1  ... (39649 characters truncated) ... l practice and patient-reported outcome measures. \n     \n     \n       \n         Supplementary Information \n         \n Supplementary Material 1.", datetime.datetime(2024, 12, 6, 20, 40, 16, 500808), datetime.datetime(2024, 12, 6, 20, 40, 16, 500818))
+2024-12-06 20:40:16,501 - sqlalchemy.engine.Engine - INFO - [cached since 0.5566s ago] ('11265159', 'Reducing the Gap in Knowledge and Expectations between Clinicians and People with Polycystic Ovary Syndrome or Adrenal Conditions: Simulation via Instant Messaging—Birmingham Advance: Patient and Public Involvement (SIMBA-PPI) Study', "Background To evaluate the efficacy of SIMBA as an educational intervention for both HCPs and people with either PCOS or adrenal conditions and to st ... (1813 characters truncated) ... nd HCPs involved in their care. Supplementary Information The online version contains supplementary material available at 10.1186/s12909-024-05772-w.", datetime.datetime(2024, 7, 22, 0, 0), 'BMC Medical Education', "Introduction \n       Patient and public involvement (PPI) are essential for an equal partnership in clinical decisions and patient-centred care [ 1  ... (39649 characters truncated) ... l practice and patient-reported outcome measures. \n     \n     \n       \n         Supplementary Information \n         \n Supplementary Material 1.", datetime.datetime(2024, 12, 6, 20, 40, 16, 500808), datetime.datetime(2024, 12, 6, 20, 40, 16, 500818))
+2024-12-06 20:40:16,512 - sqlalchemy.engine.Engine - INFO - INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:16,512 INFO sqlalchemy.engine.Engine INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:16,512 INFO sqlalchemy.engine.Engine [generated in 0.00071s] ((23, 163), (23, 164), (23, 165), (23, 166), (23, 167), (23, 168), (23, 169), (23, 170)  ... displaying 10 of 23 total bound parameter sets ...  (23, 184), (23, 185))
+2024-12-06 20:40:16,512 - sqlalchemy.engine.Engine - INFO - [generated in 0.00071s] ((23, 163), (23, 164), (23, 165), (23, 166), (23, 167), (23, 168), (23, 169), (23, 170)  ... displaying 10 of 23 total bound parameter sets ...  (23, 184), (23, 185))
+2024-12-06 20:40:16,520 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:16,520 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:16,522 INFO sqlalchemy.engine.Engine [cached since 0.5451s ago] (23,)
+2024-12-06 20:40:16,522 - sqlalchemy.engine.Engine - INFO - [cached since 0.5451s ago] (23,)
+2024-12-06 20:40:16,527 INFO sqlalchemy.engine.Engine ROLLBACK
+2024-12-06 20:40:16,527 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2024-12-06 20:40:16,530 - main - ERROR - Error processing paper 11265159: No column-based properties specified for refresh operation. Use session.expire() to reload collections and related items.
+2024-12-06 20:40:16,656 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10885794&retmode=xml&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:16,727 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2024-12-06 20:40:16,727 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2024-12-06 20:40:16,730 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:16,730 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:16,732 INFO sqlalchemy.engine.Engine [cached since 0.8234s ago] ('10885794',)
+2024-12-06 20:40:16,732 - sqlalchemy.engine.Engine - INFO - [cached since 0.8234s ago] ('10885794',)
+2024-12-06 20:40:16,744 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,744 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,746 INFO sqlalchemy.engine.Engine [cached since 0.8256s ago] ('Adam Hunt',)
+2024-12-06 20:40:16,746 - sqlalchemy.engine.Engine - INFO - [cached since 0.8256s ago] ('Adam Hunt',)
+2024-12-06 20:40:16,750 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,750 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,751 INFO sqlalchemy.engine.Engine [cached since 0.8214s ago] ('Adam Hunt', datetime.datetime(2024, 12, 6, 20, 40, 16, 750772))
+2024-12-06 20:40:16,751 - sqlalchemy.engine.Engine - INFO - [cached since 0.8214s ago] ('Adam Hunt', datetime.datetime(2024, 12, 6, 20, 40, 16, 750772))
+2024-12-06 20:40:16,756 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,756 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,759 INFO sqlalchemy.engine.Engine [cached since 0.8383s ago] ('Shelly Olin',)
+2024-12-06 20:40:16,759 - sqlalchemy.engine.Engine - INFO - [cached since 0.8383s ago] ('Shelly Olin',)
+2024-12-06 20:40:16,763 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,763 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,764 INFO sqlalchemy.engine.Engine [cached since 0.8336s ago] ('Shelly Olin', datetime.datetime(2024, 12, 6, 20, 40, 16, 763339))
+2024-12-06 20:40:16,764 - sqlalchemy.engine.Engine - INFO - [cached since 0.8336s ago] ('Shelly Olin', datetime.datetime(2024, 12, 6, 20, 40, 16, 763339))
+2024-12-06 20:40:16,770 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,770 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,771 INFO sqlalchemy.engine.Engine [cached since 0.8507s ago] ('Jacqueline C. Whittemore',)
+2024-12-06 20:40:16,771 - sqlalchemy.engine.Engine - INFO - [cached since 0.8507s ago] ('Jacqueline C. Whittemore',)
+2024-12-06 20:40:16,776 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,776 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,778 INFO sqlalchemy.engine.Engine [cached since 0.8478s ago] ('Jacqueline C. Whittemore', datetime.datetime(2024, 12, 6, 20, 40, 16, 776570))
+2024-12-06 20:40:16,778 - sqlalchemy.engine.Engine - INFO - [cached since 0.8478s ago] ('Jacqueline C. Whittemore', datetime.datetime(2024, 12, 6, 20, 40, 16, 776570))
+2024-12-06 20:40:16,784 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,784 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,785 INFO sqlalchemy.engine.Engine [cached since 0.8643s ago] ('Alejandro Esteller-Vico',)
+2024-12-06 20:40:16,785 - sqlalchemy.engine.Engine - INFO - [cached since 0.8643s ago] ('Alejandro Esteller-Vico',)
+2024-12-06 20:40:16,790 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,790 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,790 INFO sqlalchemy.engine.Engine [cached since 0.8601s ago] ('Alejandro Esteller-Vico', datetime.datetime(2024, 12, 6, 20, 40, 16, 790084))
+2024-12-06 20:40:16,790 - sqlalchemy.engine.Engine - INFO - [cached since 0.8601s ago] ('Alejandro Esteller-Vico', datetime.datetime(2024, 12, 6, 20, 40, 16, 790084))
+2024-12-06 20:40:16,795 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,795 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,797 INFO sqlalchemy.engine.Engine [cached since 0.8766s ago] ('Cary Springer',)
+2024-12-06 20:40:16,797 - sqlalchemy.engine.Engine - INFO - [cached since 0.8766s ago] ('Cary Springer',)
+2024-12-06 20:40:16,801 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,801 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,802 INFO sqlalchemy.engine.Engine [cached since 0.8722s ago] ('Cary Springer', datetime.datetime(2024, 12, 6, 20, 40, 16, 801784))
+2024-12-06 20:40:16,802 - sqlalchemy.engine.Engine - INFO - [cached since 0.8722s ago] ('Cary Springer', datetime.datetime(2024, 12, 6, 20, 40, 16, 801784))
+2024-12-06 20:40:16,809 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,809 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:16,811 - sqlalchemy.engine.Engine - INFO - [cached since 0.8905s ago] ('Luca Giori',)
+2024-12-06 20:40:16,811 INFO sqlalchemy.engine.Engine [cached since 0.8905s ago] ('Luca Giori',)
+2024-12-06 20:40:16,817 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,817 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:16,819 INFO sqlalchemy.engine.Engine [cached since 0.8881s ago] ('Luca Giori', datetime.datetime(2024, 12, 6, 20, 40, 16, 817093))
+2024-12-06 20:40:16,819 - sqlalchemy.engine.Engine - INFO - [cached since 0.8881s ago] ('Luca Giori', datetime.datetime(2024, 12, 6, 20, 40, 16, 817093))
+2024-12-06 20:40:16,823 INFO sqlalchemy.engine.Engine INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:16,823 - sqlalchemy.engine.Engine - INFO - INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:16,825 INFO sqlalchemy.engine.Engine [cached since 0.8806s ago] ('10885794', 'The effects of selected sedatives on basal and stimulated serum cortisol concentrations in healthy dogs', 'Background Hormone assessment is typically recommended for awake, unsedated dogs. However, one of the most commonly asked questions from veterinary p ... (1827 characters truncated) ... done’s effects on adrenocortical hormone testing in dogs suspected of HPA derangements is warranted to confirm they do not impact clinical diagnosis.', datetime.datetime(2024, 2, 20, 0, 0), 'PeerJ', 'Introduction \n       Definitive diagnosis of hypothalamic-pituitary axis (HPA) disorders depends on accurate adrenal function testing in conjunction ... (29731 characters truncated) ...  serum cortisol concentrations for healthy dogs ( n  = 12) after receiving saline, butorphanol, dexmedetomidine, and trazodone in a crossover design.', datetime.datetime(2024, 12, 6, 20, 40, 16, 823724), datetime.datetime(2024, 12, 6, 20, 40, 16, 823734))
+2024-12-06 20:40:16,825 - sqlalchemy.engine.Engine - INFO - [cached since 0.8806s ago] ('10885794', 'The effects of selected sedatives on basal and stimulated serum cortisol concentrations in healthy dogs', 'Background Hormone assessment is typically recommended for awake, unsedated dogs. However, one of the most commonly asked questions from veterinary p ... (1827 characters truncated) ... done’s effects on adrenocortical hormone testing in dogs suspected of HPA derangements is warranted to confirm they do not impact clinical diagnosis.', datetime.datetime(2024, 2, 20, 0, 0), 'PeerJ', 'Introduction \n       Definitive diagnosis of hypothalamic-pituitary axis (HPA) disorders depends on accurate adrenal function testing in conjunction ... (29731 characters truncated) ...  serum cortisol concentrations for healthy dogs ( n  = 12) after receiving saline, butorphanol, dexmedetomidine, and trazodone in a crossover design.', datetime.datetime(2024, 12, 6, 20, 40, 16, 823724), datetime.datetime(2024, 12, 6, 20, 40, 16, 823734))
+2024-12-06 20:40:16,834 INFO sqlalchemy.engine.Engine INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:16,834 - sqlalchemy.engine.Engine - INFO - INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:16,836 - sqlalchemy.engine.Engine - INFO - [cached since 0.3232s ago] ((24, 186), (24, 187), (24, 188), (24, 189), (24, 190), (24, 191))
+2024-12-06 20:40:16,836 INFO sqlalchemy.engine.Engine [cached since 0.3232s ago] ((24, 186), (24, 187), (24, 188), (24, 189), (24, 190), (24, 191))
+2024-12-06 20:40:16,841 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:16,841 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:16,843 INFO sqlalchemy.engine.Engine [cached since 0.8682s ago] (24,)
+2024-12-06 20:40:16,843 - sqlalchemy.engine.Engine - INFO - [cached since 0.8682s ago] (24,)
+2024-12-06 20:40:16,850 INFO sqlalchemy.engine.Engine ROLLBACK
+2024-12-06 20:40:16,850 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2024-12-06 20:40:16,854 - main - ERROR - Error processing paper 10885794: No column-based properties specified for refresh operation. Use session.expire() to reload collections and related items.
+2024-12-06 20:40:17,044 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10766260&retmode=xml&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:17,115 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2024-12-06 20:40:17,115 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2024-12-06 20:40:17,116 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:17,116 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:17,117 - sqlalchemy.engine.Engine - INFO - [cached since 1.208s ago] ('10766260',)
+2024-12-06 20:40:17,117 INFO sqlalchemy.engine.Engine [cached since 1.208s ago] ('10766260',)
+2024-12-06 20:40:17,123 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,123 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,125 INFO sqlalchemy.engine.Engine [cached since 1.205s ago] ('Sandhya Mangalore',)
+2024-12-06 20:40:17,125 - sqlalchemy.engine.Engine - INFO - [cached since 1.205s ago] ('Sandhya Mangalore',)
+2024-12-06 20:40:17,131 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,131 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,132 INFO sqlalchemy.engine.Engine [cached since 1.202s ago] ('Sandhya Mangalore', datetime.datetime(2024, 12, 6, 20, 40, 17, 131335))
+2024-12-06 20:40:17,132 - sqlalchemy.engine.Engine - INFO - [cached since 1.202s ago] ('Sandhya Mangalore', datetime.datetime(2024, 12, 6, 20, 40, 17, 131335))
+2024-12-06 20:40:17,137 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,137 - sqlalchemy.engine.Engine - INFO - [cached since 1.217s ago] ('Sriharish Vankayalapati',)
+2024-12-06 20:40:17,137 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,137 INFO sqlalchemy.engine.Engine [cached since 1.217s ago] ('Sriharish Vankayalapati',)
+2024-12-06 20:40:17,142 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,143 INFO sqlalchemy.engine.Engine [cached since 1.213s ago] ('Sriharish Vankayalapati', datetime.datetime(2024, 12, 6, 20, 40, 17, 142849))
+2024-12-06 20:40:17,142 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,143 - sqlalchemy.engine.Engine - INFO - [cached since 1.213s ago] ('Sriharish Vankayalapati', datetime.datetime(2024, 12, 6, 20, 40, 17, 142849))
+2024-12-06 20:40:17,147 - sqlalchemy.engine.Engine - INFO - SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,148 - sqlalchemy.engine.Engine - INFO - [cached since 1.228s ago] ('Arun Kumar Gupta',)
+2024-12-06 20:40:17,147 INFO sqlalchemy.engine.Engine SELECT authors.id, authors.name, authors.created_at 
+FROM authors 
+WHERE authors.name = %s
+2024-12-06 20:40:17,148 INFO sqlalchemy.engine.Engine [cached since 1.228s ago] ('Arun Kumar Gupta',)
+2024-12-06 20:40:17,151 INFO sqlalchemy.engine.Engine INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,151 - sqlalchemy.engine.Engine - INFO - INSERT INTO authors (name, created_at) VALUES (%s, %s) RETURNING authors.id
+2024-12-06 20:40:17,152 INFO sqlalchemy.engine.Engine [cached since 1.221s ago] ('Arun Kumar Gupta', datetime.datetime(2024, 12, 6, 20, 40, 17, 151572))
+2024-12-06 20:40:17,152 - sqlalchemy.engine.Engine - INFO - [cached since 1.221s ago] ('Arun Kumar Gupta', datetime.datetime(2024, 12, 6, 20, 40, 17, 151572))
+2024-12-06 20:40:17,157 INFO sqlalchemy.engine.Engine INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:17,157 - sqlalchemy.engine.Engine - INFO - INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:17,159 INFO sqlalchemy.engine.Engine [cached since 1.213s ago] ('10766260', 'Role of whole body MRI in paraneoplastic/autoimmune syndromes: An MRPET study to standardize protocols, pattern interpretation, and establish yield of MRI', 'Imaging a case of autoimmune encephalitis (AIE) can be challenging as the underlying tumor may be occult. The aim of this retrospective case-based st ... (1488 characters truncated) ... mportant role in workup of AIE. Selection of the appropriate protocol is important, especially when history and physical examination are nonspecific.', datetime.datetime(2024, 1, 5, 0, 0), 'Medicine', "1. Introduction \n       Autoimmune encephalitis (AIE) and Paraneoplastic neurological syndromes (PNS) are interchangeably used terms and are a heter ... (64007 characters truncated) ... t:  Sandhya Mangalore. \n       Writing – review & editing:  Sriharish Vankayalapati, Arun Kumar Gupta. \n     \n     \n       Supplementary Material", datetime.datetime(2024, 12, 6, 20, 40, 17, 157505), datetime.datetime(2024, 12, 6, 20, 40, 17, 157517))
+2024-12-06 20:40:17,159 - sqlalchemy.engine.Engine - INFO - [cached since 1.213s ago] ('10766260', 'Role of whole body MRI in paraneoplastic/autoimmune syndromes: An MRPET study to standardize protocols, pattern interpretation, and establish yield of MRI', 'Imaging a case of autoimmune encephalitis (AIE) can be challenging as the underlying tumor may be occult. The aim of this retrospective case-based st ... (1488 characters truncated) ... mportant role in workup of AIE. Selection of the appropriate protocol is important, especially when history and physical examination are nonspecific.', datetime.datetime(2024, 1, 5, 0, 0), 'Medicine', "1. Introduction \n       Autoimmune encephalitis (AIE) and Paraneoplastic neurological syndromes (PNS) are interchangeably used terms and are a heter ... (64007 characters truncated) ... t:  Sandhya Mangalore. \n       Writing – review & editing:  Sriharish Vankayalapati, Arun Kumar Gupta. \n     \n     \n       Supplementary Material", datetime.datetime(2024, 12, 6, 20, 40, 17, 157505), datetime.datetime(2024, 12, 6, 20, 40, 17, 157517))
+2024-12-06 20:40:17,168 - sqlalchemy.engine.Engine - INFO - INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:17,168 - sqlalchemy.engine.Engine - INFO - [cached since 0.6566s ago] ((25, 192), (25, 193), (25, 194))
+2024-12-06 20:40:17,168 INFO sqlalchemy.engine.Engine INSERT INTO paper_authors (paper_id, author_id) VALUES (%s, %s)
+2024-12-06 20:40:17,168 INFO sqlalchemy.engine.Engine [cached since 0.6566s ago] ((25, 192), (25, 193), (25, 194))
+2024-12-06 20:40:17,174 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:17,174 - sqlalchemy.engine.Engine - INFO - [cached since 1.199s ago] (25,)
+2024-12-06 20:40:17,174 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:17,174 INFO sqlalchemy.engine.Engine [cached since 1.199s ago] (25,)
+2024-12-06 20:40:17,179 INFO sqlalchemy.engine.Engine ROLLBACK
+2024-12-06 20:40:17,179 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2024-12-06 20:40:17,182 - main - ERROR - Error processing paper 10766260: No column-based properties specified for refresh operation. Use session.expire() to reload collections and related items.
+2024-12-06 20:40:17,371 - httpx - INFO - HTTP Request: GET https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10870986&retmode=xml&api_key=9b87ec437af83f2d060b27695d70d6a75a08 "HTTP/1.1 200 OK"
+2024-12-06 20:40:17,460 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2024-12-06 20:40:17,460 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2024-12-06 20:40:17,464 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:17,464 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.pmid = %s
+2024-12-06 20:40:17,465 INFO sqlalchemy.engine.Engine [cached since 1.556s ago] ('10870986',)
+2024-12-06 20:40:17,465 - sqlalchemy.engine.Engine - INFO - [cached since 1.556s ago] ('10870986',)
+2024-12-06 20:40:17,475 INFO sqlalchemy.engine.Engine INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:17,475 - sqlalchemy.engine.Engine - INFO - INSERT INTO papers (pmid, title, abstract, publication_date, journal, full_text, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING papers.id
+2024-12-06 20:40:17,479 INFO sqlalchemy.engine.Engine [cached since 1.534s ago] ('10870986', 'E-Poster', '', datetime.datetime(2023, 12, 1, 0, 0), 'Indian Journal of Endocrinology and Metabolism', "Abstract No: ABS004: Strongyloidiasis masquerading as Addison’s disease \n       \n M. Sriram \n \n       People's College of Medical Sciences and Re ... (350182 characters truncated) ... nd cost-effectiveness results will strengthen clinical practice. \n       Keywords:  Nurse-led clinic, insulin titration, Diabetes, Randomized trial~", datetime.datetime(2024, 12, 6, 20, 40, 17, 475386), datetime.datetime(2024, 12, 6, 20, 40, 17, 475397))
+2024-12-06 20:40:17,479 - sqlalchemy.engine.Engine - INFO - [cached since 1.534s ago] ('10870986', 'E-Poster', '', datetime.datetime(2023, 12, 1, 0, 0), 'Indian Journal of Endocrinology and Metabolism', "Abstract No: ABS004: Strongyloidiasis masquerading as Addison’s disease \n       \n M. Sriram \n \n       People's College of Medical Sciences and Re ... (350182 characters truncated) ... nd cost-effectiveness results will strengthen clinical practice. \n       Keywords:  Nurse-led clinic, insulin titration, Diabetes, Randomized trial~", datetime.datetime(2024, 12, 6, 20, 40, 17, 475386), datetime.datetime(2024, 12, 6, 20, 40, 17, 475397))
+2024-12-06 20:40:17,513 INFO sqlalchemy.engine.Engine SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:17,513 - sqlalchemy.engine.Engine - INFO - SELECT papers.id, papers.pmid, papers.title, papers.abstract, papers.publication_date, papers.journal, papers.full_text, papers.created_at, papers.updated_at 
+FROM papers 
+WHERE papers.id = %s
+2024-12-06 20:40:17,514 - sqlalchemy.engine.Engine - INFO - [cached since 1.539s ago] (26,)
+2024-12-06 20:40:17,514 INFO sqlalchemy.engine.Engine [cached since 1.539s ago] (26,)
+2024-12-06 20:40:17,526 INFO sqlalchemy.engine.Engine ROLLBACK
+2024-12-06 20:40:17,526 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2024-12-06 20:40:17,529 - main - ERROR - Error processing paper 10870986: No column-based properties specified for refresh operation. Use session.expire() to reload collections and related items.
+INFO:     127.0.0.1:39210 - "POST /ingest HTTP/1.1" 200 OK
+

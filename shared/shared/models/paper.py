@@ -1,21 +1,27 @@
+# Description: Define the Paper model
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Table, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
 
-# Association table for paper-author relationship
+# Define tables first
 paper_authors = Table(
-    'paper_authors',
-    Base.metadata,
+    'paper_authors', Base.metadata,
     Column('paper_id', Integer, ForeignKey('papers.id')),
     Column('author_id', Integer, ForeignKey('authors.id'))
 )
 
+paper_citations = Table(
+    'paper_citations', Base.metadata,
+    Column('citing_paper_id', Integer, ForeignKey('papers.id', ondelete='CASCADE')),
+    Column('cited_paper_id', Integer, ForeignKey('papers.id', ondelete='CASCADE'))
+)
+
 class Paper(Base):
     __tablename__ = 'papers'
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True)
     pmid = Column(String(20), unique=True, index=True)
     title = Column(Text, nullable=False)
@@ -28,10 +34,12 @@ class Paper(Base):
 
     # Relationships
     authors = relationship("Author", secondary=paper_authors, back_populates="papers")
-    citations = relationship(
-        "Paper",
-        secondary="citations",
-        primaryjoin="Paper.id==citations.c.citing_paper_id",
-        secondaryjoin="Paper.id==citations.c.cited_paper_id",
-        backref="cited_by"
+    
+    # Citation relationships
+    citing_papers = relationship(
+        'Paper',
+        secondary=paper_citations,
+        primaryjoin=id==paper_citations.c.citing_paper_id,
+        secondaryjoin=id==paper_citations.c.cited_paper_id,
+        backref='cited_by'
     )

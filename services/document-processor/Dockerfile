@@ -1,3 +1,4 @@
+# Description: Dockerfile for document-processor service
 FROM python:3.9-slim
 
 WORKDIR /app
