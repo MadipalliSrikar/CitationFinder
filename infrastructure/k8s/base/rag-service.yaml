@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-service
+  namespace: citation-finder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rag-service
+  template:
+    metadata:
+      labels:
+        app: rag-service
+    spec:
+      containers:
+      - name: rag-service
+        image: registry.digitalocean.com/citation-finder/rag-service:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+        env:
+        - name: PUBMED_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-credentials
+              key: PUBMED_API_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-service
+  namespace: citation-finder
+spec:
+  selector:
+    app: rag-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

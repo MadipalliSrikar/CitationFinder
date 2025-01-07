@@ -68,44 +68,52 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         }
 
 async def store_paper(db: AsyncSession, paper_data: dict) -> Paper:
-    # Check if paper exists
-    query = select(Paper).where(Paper.pmid == paper_data['pmid'])
-    result = await db.execute(query)
-    existing_paper = result.scalar_one_or_none()
-    
-    if existing_paper:
-        return existing_paper
-        
-    # Create new paper
-    paper = Paper(
-        pmid=paper_data['pmid'],
-        title=paper_data['title'],
-        abstract=paper_data['abstract'],
-        publication_date=paper_data['publication_date'],
-        journal=paper_data['journal'],
-        full_text=paper_data.get('full_text', '')
-    )
-    
-    # Add authors
-    for author_name in paper_data['authors']:
-        query = select(Author).where(Author.name == author_name)
+    try:
+        # Check if the paper already exists
+        query = select(Paper).options(selectinload(Paper.authors)).where(Paper.pmid == paper_data['pmid'])
         result = await db.execute(query)
-        existing_author = result.scalar_one_or_none()
+        existing_paper = result.scalar_one_or_none()
         
-        if existing_author:
-            author = existing_author
-        else:
-            author = Author(name=author_name)
-            db.add(author)
-            await db.flush()
+        if existing_paper:
+            return existing_paper
         
-        paper.authors.append(author)
-    
-    db.add(paper)
-    await db.flush()
-    await db.refresh(paper)
-    
-    return paper
+        # Create a new paper object
+        paper = Paper(
+            pmid=paper_data['pmid'],
+            title=paper_data['title'],
+            abstract=paper_data['abstract'],
+            publication_date=paper_data['publication_date'],
+            journal=paper_data['journal'],
+            full_text=paper_data.get('full_text', '')
+        )
+        
+        # Add authors
+        for author_name in paper_data['authors']:
+            query = select(Author).where(Author.name == author_name)
+            result = await db.execute(query)
+            existing_author = result.scalar_one_or_none()
+            
+            if existing_author:
+                author = existing_author
+            else:
+                author = Author(name=author_name)
+                db.add(author)
+            paper.authors.append(author)
+        
+        # Add and flush the paper to the session
+        db.add(paper)
+        await db.flush()
+        
+        # Refresh the paper (relationships will be lazy-loaded or eagerly loaded)
+        await db.refresh(paper)
+        
+        return paper
+
+    except Exception as e:
+        logger.error(f"Error storing paper: {str(e)}")
+        raise
+
+
 
 @contextlib.asynccontextmanager
 async def transaction(session):

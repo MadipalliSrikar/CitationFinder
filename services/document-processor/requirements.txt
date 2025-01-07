@@ -9,4 +9,4 @@ scikit-learn==1.3.2
 numpy==1.26.2
 pandas==2.1.3
 pydantic>=2.7.0,<3.0.0
-file:///Users/srikarmadipalli/Documents/Semester-03/MIS-547/Project/citation_finder/shared
+

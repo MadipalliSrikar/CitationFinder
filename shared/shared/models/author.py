@@ -9,8 +9,13 @@ class Author(Base):
     __tablename__ = 'authors'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    papers = relationship("Paper", secondary=paper_authors, back_populates="authors")
+    papers = relationship(
+        "Paper",
+        secondary=paper_authors,
+        back_populates="authors",
+        cascade="all, delete"
+    )

@@ -7,11 +7,11 @@ import ssl
 load_dotenv()
 
 # Database configuration
-DB_HOST = os.getenv("DB_HOST", "citation-finder-db-do-user-17404056-0.i.db.ondigitalocean.com")
+DB_HOST = os.getenv("DB_HOST", "")
 DB_PORT = os.getenv("DB_PORT", "25060")
 DB_NAME = os.getenv("DB_NAME", "defaultdb")
 DB_USER = os.getenv("DB_USER", "doadmin")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "AVNS_3zS5LCgfbJ4fk4y7a1o")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
 # Create SSL context that accepts self-signed certificates
 ssl_context = ssl.create_default_context()

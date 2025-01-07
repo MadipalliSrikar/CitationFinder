@@ -85,31 +85,25 @@ class RAGService:
         """Create search index from processed papers"""
         if not self.vector_store:
             raise RAGServiceError("Vector store not initialized")
-            
         try:
             # Get all processed papers from database
             stmt = select(Paper)
             result = await self.db.execute(stmt)
             papers = result.scalars().all()
-
             if not papers:
                 logger.warning("No papers found in database")
                 return "No papers available for indexing"
-
             logger.info(f"Creating index from {len(papers)} papers")
             documents = []
-            
             for paper in papers:
                 if not paper.title or not paper.pmid:
                     logger.warning(f"Skipping paper with missing required fields: {paper.pmid}")
                     continue
-                    
                 # Combine paper content
                 content = f"""
                 Title: {paper.title}
                 Abstract: {paper.abstract or ''}
                 """
-                
                 # Create document with metadata
                 doc = Document(
                     text=content,
@@ -120,15 +114,12 @@ class RAGService:
                     }
                 )
                 documents.append(doc)
-
             # Create storage context and index (Settings automatically handles embed_model)
             storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-            
             self.index = VectorStoreIndex.from_documents(
                 documents,
                 storage_context=storage_context
             )
-
             logger.info(f"Successfully created index with {len(documents)} documents")
             return f"Index created successfully with {len(documents)} papers"
 

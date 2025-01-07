@@ -27,10 +27,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - api.citation-finder.com  # Replace with your domain
+    - api.citation-finder.com  
     secretName: citation-finder-tls
   rules:
-  - host: api.citation-finder.com  # Replace with your domain
+  - host: api.citation-finder.com
     http:
       paths:
       - path: /api/v1/ingest
