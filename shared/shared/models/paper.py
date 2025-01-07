@@ -23,17 +23,22 @@ class Paper(Base):
     __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True)
-    pmid = Column(String(20), unique=True, index=True)
+    pmid = Column(String(20), unique=True, index=True, nullable=False)
     title = Column(Text, nullable=False)
-    abstract = Column(Text)
-    publication_date = Column(DateTime)
-    journal = Column(String(255))
-    full_text = Column(Text)
+    abstract = Column(Text, nullable=True)
+    publication_date = Column(DateTime, nullable=True)
+    journal = Column(String(255), nullable=True)
+    full_text = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    authors = relationship("Author", secondary=paper_authors, back_populates="papers")
+    authors = relationship(
+        "Author",
+        secondary=paper_authors,
+        back_populates="papers",
+        cascade="all, delete"
+    )
     
     # Citation relationships
     citing_papers = relationship(
@@ -41,5 +46,6 @@ class Paper(Base):
         secondary=paper_citations,
         primaryjoin=id==paper_citations.c.citing_paper_id,
         secondaryjoin=id==paper_citations.c.cited_paper_id,
-        backref='cited_by'
+        backref='cited_by',
+        cascade="all, delete"
     )

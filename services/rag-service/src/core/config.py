@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     chunk_overlap: int = 64
     
     # Database Configuration
-    DB_HOST: str = "citation-finder-db-do-user-17404056-0.i.db.ondigitalocean.com"
+    DB_HOST: str = ""
     DB_PORT: str = "25060"
     DB_NAME: str = "defaultdb"
     DB_USER: str = "doadmin"
-    DB_PASSWORD: str = "AVNS_3zS5LCgfbJ4fk4y7a1o"
+    DB_PASSWORD: str = ""
     
     # pgvector Configuration
     PGVECTOR_TABLE: str = "paper_embeddings"
